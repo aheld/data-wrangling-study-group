@@ -46,26 +46,29 @@ def parse_file(datafile):
     #print "Convert time to a Python datetime tuple, from the Excel float:",
     #print xlrd.xldate_as_tuple(exceltime, 0)
 
-    # *******************
-    # load all the data and key it by date, then send back just the requested date
-    # *******************
-
     def get_data():
         for rownum in range(1, sheet.nrows):
             silly_excel_date = sheet.cell_value(rownum, 0)
             better_python_tuple = xlrd.xldate_as_tuple(silly_excel_date, 0)
-            best_python_date = datetime.datetime(*better_python_tuple)
+            #best_python_date = datetime.datetime(*better_python_tuple)
 
             #range(1,9) gives [1,2,3,4,5,6,7,8]
             loads = [sheet.cell_value(rownum, col) for col in range(1, 9)]
 
-            data = {
-                'maxtime': better_python_tuple,
-                'maxvalue': max(loads),
-                'minvalue': min(loads),
-                'avgcoast': sum(loads) / float(len(loads))
-            }
-            yield (best_python_date, data)
+            yield {'date': better_python_tuple,
+                   'load': sheet.cell_value(rownum, 1),
+                   'maxload': max(loads),
+                   'minload': min(loads)}
 
-    data = {date: data for date, data in get_data()}
-    return data[datetime.datetime(2013, 8, 13, 17, 0, 0)]
+    data = [row for row in get_data()]
+
+    max_row = max(data, key=lambda x: x['load'])
+    min_row = min(data, key=lambda x: x['load'])
+    coast_values = [x['load'] for x in data]
+
+    return {'maxtime': max_row['date'],
+            'maxvalue': max_row['load'],
+            'minvalue': min_row['load'],
+            'mintime': min_row['date'],
+            'avgcoast': sum(coast_values) / float(len(coast_values))
+            }
