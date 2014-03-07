@@ -19,8 +19,15 @@ def open_zip(datafile):
         myzip.extractall()
 
 
-def parse_file(datafile):
-    workbook = xlrd.open_workbook(datafile)
+def get_zipfile_contents(zipfile, datafile):
+    with ZipFile('{0}'.format(zipfile), 'r') as myzip:
+        contents = myzip.open(datafile, 'r').read()
+    return contents
+
+
+def parse_file(zipfile, datafile):
+    workbook = xlrd.open_workbook(
+        file_contents=get_zipfile_contents(zipfile, datafile))
     sheet = workbook.sheet_by_index(0)
 
     ### example on how you can get the data
